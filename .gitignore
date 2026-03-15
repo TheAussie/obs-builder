@@ -1,0 +1,6 @@
+OBSBuild/
+Logs/
+Builds/
+*.log
+*.html
+*.tmp
