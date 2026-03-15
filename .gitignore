@@ -1,6 +1,5 @@
-OBSBuild/
-Logs/
-Builds/
-*.log
-*.html
-*.tmp
+*.swp
+*.swo
+*.org
+*.kate-swp
+obs-vkcapture-build.txt
