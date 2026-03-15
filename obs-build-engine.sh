@@ -1838,8 +1838,8 @@ build_linux_vkcapture_plugin() {
   cp -av "$vkcapture_stage_prefix/bin/obs-glcapture" \
     "$HOME/.local/bin/" >> "$log" 2>&1 || { warn "Failed to install obs-glcapture"; return 1; }
 
-  cp -av "$vkcapture_stage_prefix/lib64/obs-plugins/linux-capture.so" \
-    "$HOME/.local/lib64/obs-plugins/" >> "$log" 2>&1 || { warn "Failed to install linux-capture.so"; return 1; }
+  cp -av "$vkcapture_stage_prefix/lib64/obs-plugins/linux-vkcapture.so" \
+    "$HOME/.local/lib64/obs-plugins/" >> "$log" 2>&1 || { warn "Failed to install linux-vkcapture.so"; return 1; }
 
   cp -av "$vkcapture_stage_prefix/lib64/libVkLayer_obs_vkcapture.so" \
     "$HOME/.local/lib64/" >> "$log" 2>&1 || { warn "Failed to install 64-bit libVkLayer_obs_vkcapture.so"; return 1; }
