@@ -1541,10 +1541,6 @@ build_obs() {
     fi
   fi
 
-#   run_cmd "Configuring OBS Studio" "$log" \
-#   env "${cmake_env[@]}" \
-#   cmake -S "$OBS_SRC" -B "$OBS_BUILD" "${cmake_flags[@]}" \
-#   || { mark_failed obs-studio "cmake configure failed"; return 1; }
 
   # Temporary Debug Dump During config if fail.
   run_cmd "Configuring OBS Studio" "$log" \
@@ -1552,10 +1548,6 @@ build_obs() {
   cmake -S "$OBS_SRC" -B "$OBS_BUILD" "${cmake_flags[@]}" \
     || { dump_obs_debug_artifacts; mark_failed obs-studio "cmake configure failed"; return 1; }
 
-#   run_cmd "Building OBS Studio" "$log" \
-#   env "${cmake_env[@]}" \
-#   cmake --build "$OBS_BUILD" -j"$(nproc)" \
-#   || { mark_failed obs-studio "build failed"; return 1; }
    # Same thing as the previous.
   run_cmd "Building OBS Studio" "$log" \
   env "${cmake_env[@]}" \
@@ -1663,30 +1655,6 @@ install_vkcapture_multilib_deps() {
     install_container_packages_from_host "${multilib_packages[@]}" >>"$log" 2>&1 \
       || { warn "linux-vkcapture multilib dependency install failed (see $log)"; return 1; }
   fi
-#     run_cmd "Installing linux-vkcapture multilib deps" "$log" dnf install -y \
-#     vulkan-loader-devel.i686 \
-#     glibc-devel.i686 \
-#     libgcc.i686 \
-#     libstdc++-devel.i686 \
-#     libX11-devel.i686 \
-#     libXcomposite-devel.i686 \
-#     libXinerama-devel.i686 \
-#     libXrandr-devel.i686 \
-#     libXrender-devel.i686 \
-#     libXfixes-devel.i686 \
-#     libXi-devel.i686 \
-#     libXcursor-devel.i686 \
-#     libXdamage-devel.i686 \
-#     libXext-devel.i686 \
-#     libxcb-devel.i686 \
-#     xcb-util-devel.i686 \
-#     xcb-util-image-devel.i686 \
-#     xcb-util-keysyms-devel.i686 \
-#     xcb-util-renderutil-devel.i686 \
-#     xcb-util-wm-devel.i686 \
-#     libxkbcommon-devel.i686 \
-#     libglvnd-devel.i686 \
-#     libdrm-devel.i686 \
 
 }
 
@@ -1759,10 +1727,6 @@ build_linux_vkcapture_plugin() {
     cmake "$VKCAPTURE_SRC" "${vkcapture32_cmake_flags[@]}" \
       || { warn "linux-vkcapture 32-bit configure failed"; return 1; }
 
-#   run_in_dir "$VKCAPTURE_BUILD32" run_cmd \
-#     "Building linux-vkcapture (32-bit)" "$log" \
-#     cmake --build . -j"$(nproc)" \
-#       || { warn "linux-vkcapture 32-bit build failed"; return 1; }
 
   run_in_dir "$VKCAPTURE_BUILD32" run_cmd \
   "Building linux-vkcapture helper targets (32-bit)" "$log" \
@@ -1781,39 +1745,6 @@ build_linux_vkcapture_plugin() {
 
   cp -av "$VKCAPTURE_BUILD32/libVkLayer_obs_vkcapture.so" \
     "$BUILD_DIR/vkcapture-stage/usr/local/lib/" >> "$log" 2>&1 || true
-
-#   run_in_dir "$VKCAPTURE_BUILD32" run_cmd \
-#     "Installing linux-vkcapture helper artifacts (32-bit)" "$log" \
-#     env DESTDIR="$BUILD_DIR/vkcapture-stage" cmake --install . \
-#       || { warn "linux-vkcapture 32-bit install failed"; return 1; }
-
-# Old Export Code
-
-#   mkdir -p \
-#     "$HOME/.local/bin" \
-#     "$HOME/.local/lib" \
-#     "$HOME/.local/lib64" \
-#     "$HOME/.local/share/vulkan/implicit_layer.d"
-#
-#   cp -av "$BUILD_DIR/vkcapture-stage/usr/local/bin/obs-gamecapture" \
-#     "$HOME/.local/bin/" >> "$log" 2>&1 || true
-#
-#   cp -av "$BUILD_DIR/vkcapture-stage/usr/local/bin/obs-vkcapture" \
-#     "$HOME/.local/bin/" >> "$log" 2>&1 || true
-#
-#   cp -av "$BUILD_DIR/vkcapture-stage/usr/local/bin/obs-glcapture" \
-#     "$HOME/.local/bin/" >> "$log" 2>&1 || true
-#
-#   cp -av "$BUILD_DIR/vkcapture-stage/usr/local/lib64/libVkLayer_obs_vkcapture.so" \
-#     "$HOME/.local/lib64/" >> "$log" 2>&1 || true
-#
-#   cp -av "$BUILD_DIR/vkcapture-stage/usr/local/lib/libVkLayer_obs_vkcapture.so" \
-#     "$HOME/.local/lib/" >> "$log" 2>&1 || true
-#
-#   cp -av "$BUILD_DIR/vkcapture-stage/usr/local/share/vulkan/implicit_layer.d/"*.json \
-#     "$HOME/.local/share/vulkan/implicit_layer.d/" >> "$log" 2>&1 || true
-#
-#   ok "linux-vkcapture plugin installed into $HOME/.local"
 
 
   ################################################
@@ -1860,133 +1791,6 @@ build_linux_vkcapture_plugin() {
 
 
 }
-
-
-# build_linux_vkcapture_plugin() {
-#   feature_to_bool "$ENABLE_VKCAPTURE_PLUGIN" || return 0
-#
-#   local log="$VKCAPTURE_BUILD_LOG"
-#   : > "$log"
-#
-#   info "STEP 7a: Building linux-vkcapture plugin..."
-#
-#   clone_or_update_repo obs-vkcapture https://github.com/nowrep/obs-vkcapture.git \
-#     || { warn "obs-vkcapture repo update failed"; return 1; }
-#
-#   rm -rf "$VKCAPTURE_BUILD" "$VKCAPTURE_BUILD32" "$BUILD_DIR/vkcapture-stage"
-#   mkdir -p "$VKCAPTURE_BUILD" "$VKCAPTURE_BUILD32"
-#
-#   ################################################
-#   # Build 64-bit first (safe for OBS environment)
-#   ################################################
-#
-#   run_in_dir "$VKCAPTURE_BUILD" run_cmd \
-#     "Configuring linux-vkcapture (64-bit)" "$log" \
-#     cmake "$VKCAPTURE_SRC" \
-#       -DCMAKE_BUILD_TYPE=Release \
-#       -DCMAKE_INSTALL_PREFIX="$HOME/.local" \
-#       -DCMAKE_INSTALL_LIBDIR=lib64 \
-#       || { warn "linux-vkcapture 64-bit configure failed"; return 1; }
-#
-#   run_in_dir "$VKCAPTURE_BUILD" run_cmd \
-#     "Building linux-vkcapture (64-bit)" "$log" \
-#     cmake --build . -j"$(nproc)" \
-#     || { warn "linux-vkcapture 64-bit build failed"; return 1; }
-#
-#   run_in_dir "$VKCAPTURE_BUILD" run_cmd \
-#     "Installing linux-vkcapture (64-bit)" "$log" \
-#     env DESTDIR="$BUILD_DIR/vkcapture-stage" cmake --install . \
-#     || { warn "linux-vkcapture 64-bit install failed"; return 1; }
-#
-#   ################################################
-#   # Install multilib dependencies ONLY now
-#   ################################################
-#
-#   install_vkcapture_multilib_deps || return 1
-#
-#   ################################################
-#   # Build 32-bit version
-#   ################################################
-#
-#
-#   local vkcapture32_env=(
-#     PKG_CONFIG_PATH="$HOME/.local/lib64/pkgconfig:$HOME/.local/lib/pkgconfig:/usr/local/lib64/pkgconfig:/usr/local/lib/pkgconfig:/usr/lib64/pkgconfig:/usr/share/pkgconfig"
-#     CFLAGS="-m32 -I$HOME/.local/include -I$HOME/.local/include/obs -Wno-error"
-#     CXXFLAGS="-m32 -I$HOME/.local/include -I$HOME/.local/include/obs -Wno-error"
-#     LDFLAGS="-m32"
-#   )
-#
-#   local vkcapture32_cmake_flags=(
-#     -DCMAKE_BUILD_TYPE=Release
-#     -DCMAKE_INSTALL_PREFIX="$HOME/.local"
-#     -DCMAKE_INSTALL_LIBDIR=lib
-#   )
-#
-#   run_in_dir "$VKCAPTURE_BUILD32" run_cmd \
-#     "Configuring linux-vkcapture (32-bit)" "$log" \
-#     env "${vkcapture32_env[@]}" \
-#     cmake "$VKCAPTURE_SRC" "${vkcapture32_cmake_flags[@]}" \
-#       || { warn "linux-vkcapture 32-bit configure failed"; return 1; }
-#
-# #   run_in_dir "$VKCAPTURE_BUILD32" run_cmd \
-# #     "Building linux-vkcapture (32-bit)" "$log" \
-# #     cmake --build . -j"$(nproc)" \
-# #       || { warn "linux-vkcapture 32-bit build failed"; return 1; }
-#
-#   run_in_dir "$VKCAPTURE_BUILD32" run_cmd \
-#   "Building linux-vkcapture helper targets (32-bit)" "$log" \
-#   cmake --build . -j"$(nproc)" --target obs_glcapture VkLayer_obs_vkcapture \
-#     || { warn "linux-vkcapture 32-bit helper build failed"; return 1; }
-#
-#
-#   info "Installing linux-vkcapture helper artifacts (32-bit)"
-#
-#   mkdir -p \
-#     "$BUILD_DIR/vkcapture-stage/usr/local/lib" \
-#     "$BUILD_DIR/vkcapture-stage/usr/local/lib32"
-#
-#   cp -av "$VKCAPTURE_BUILD32/libobs_glcapture.so" \
-#     "$BUILD_DIR/vkcapture-stage/usr/local/lib/" >> "$log" 2>&1 || true
-#
-#   cp -av "$VKCAPTURE_BUILD32/libVkLayer_obs_vkcapture.so" \
-#     "$BUILD_DIR/vkcapture-stage/usr/local/lib/" >> "$log" 2>&1 || true
-#
-# #   run_in_dir "$VKCAPTURE_BUILD32" run_cmd \
-# #     "Installing linux-vkcapture helper artifacts (32-bit)" "$log" \
-# #     env DESTDIR="$BUILD_DIR/vkcapture-stage" cmake --install . \
-# #       || { warn "linux-vkcapture 32-bit install failed"; return 1; }
-#
-#   ################################################
-#   # Export both architectures
-#   ################################################
-#
-#   mkdir -p \
-#     "$HOME/.local/bin" \
-#     "$HOME/.local/lib" \
-#     "$HOME/.local/lib64" \
-#     "$HOME/.local/share/vulkan/implicit_layer.d"
-#
-#   cp -av "$BUILD_DIR/vkcapture-stage/usr/local/bin/obs-gamecapture" \
-#     "$HOME/.local/bin/" >> "$log" 2>&1 || true
-#
-#   cp -av "$BUILD_DIR/vkcapture-stage/usr/local/bin/obs-vkcapture" \
-#     "$HOME/.local/bin/" >> "$log" 2>&1 || true
-#
-#   cp -av "$BUILD_DIR/vkcapture-stage/usr/local/bin/obs-glcapture" \
-#     "$HOME/.local/bin/" >> "$log" 2>&1 || true
-#
-#   cp -av "$BUILD_DIR/vkcapture-stage/usr/local/lib64/libVkLayer_obs_vkcapture.so" \
-#     "$HOME/.local/lib64/" >> "$log" 2>&1 || true
-#
-#   cp -av "$BUILD_DIR/vkcapture-stage/usr/local/lib/libVkLayer_obs_vkcapture.so" \
-#     "$HOME/.local/lib/" >> "$log" 2>&1 || true
-#
-#   cp -av "$BUILD_DIR/vkcapture-stage/usr/local/share/vulkan/implicit_layer.d/"*.json \
-#     "$HOME/.local/share/vulkan/implicit_layer.d/" >> "$log" 2>&1 || true
-#
-#   ok "linux-vkcapture plugin installed into $HOME/.local"
-# }
-
 
 build_app_audio_capture_plugin() {
   feature_to_bool "$ENABLE_APP_AUDIO_PLUGIN" || return 0
